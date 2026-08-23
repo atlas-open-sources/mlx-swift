@@ -1,6 +1,10 @@
 [submodule "submodules/mlx"]
 	path = Source/Cmlx/mlx
-	url = https://github.com/ml-explore/mlx
+	# atlas-open-sources/mlx = ml-explore/mlx @ ce45c525 (what 0.31.6 vendors)
+	# plus the three-line RoPE batch-grid backport of 76a977ca. Return this to
+	# https://github.com/ml-explore/mlx as soon as an mlx-swift release vendors
+	# a post-76a977ca mlx.
+	url = https://github.com/atlas-open-sources/mlx
 [submodule "submodules/mlx-c"]
 	path = Source/Cmlx/mlx-c
 	url = https://github.com/ml-explore/mlx-c
