@@ -19,12 +19,6 @@ const char* steel_attention_nax() {
 #define STEEL_PRAGMA_NO_UNROLL _Pragma("clang loop unroll(disable)")
 
 ///////////////////////////////////////////////////////////////////////////////
-// Contents from "/private/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.525.0.RrIjD2/Metal.xctoolchain/usr/metal/32023/lib/clang/32023.850/include/metal/__exec/units.h"
-///////////////////////////////////////////////////////////////////////////////
-
-#line 1 "/private/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.525.0.RrIjD2/Metal.xctoolchain/usr/metal/32023/lib/clang/32023.850/include/metal/__exec/units.h"
-
-///////////////////////////////////////////////////////////////////////////////
 // Contents from "mlx/backend/metal/kernels/steel/utils/type_traits.h"
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -192,13 +186,16 @@ void dispatch_bool(bool v, F f) {
   }
 }
 
+// Metal 3 uses C++14: terminate recursion with overload selection rather than
+// an if-constexpr branch, so the inactive body is never instantiated.
 template <int start, int stop, int step, typename F>
-constexpr void const_for_loop(F f) {
-  if constexpr (start < stop) {
-    constexpr auto idx = Int<start>{};
-    f(idx);
-    const_for_loop<start + step, stop, step, F>(f);
-  }
+constexpr metal::enable_if_t<(start >= stop)> const_for_loop(F) {}
+
+template <int start, int stop, int step, typename F>
+constexpr metal::enable_if_t<(start < stop)> const_for_loop(F f) {
+  constexpr auto idx = Int<start>{};
+  f(idx);
+  const_for_loop<start + step, stop, step, F>(f);
 }
 
 #undef integral_const_binop

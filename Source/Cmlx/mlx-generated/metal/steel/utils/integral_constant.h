@@ -103,13 +103,16 @@ void dispatch_bool(bool v, F f) {
   }
 }
 
+// Metal 3 uses C++14: terminate recursion with overload selection rather than
+// an if-constexpr branch, so the inactive body is never instantiated.
 template <int start, int stop, int step, typename F>
-constexpr void const_for_loop(F f) {
-  if constexpr (start < stop) {
-    constexpr auto idx = Int<start>{};
-    f(idx);
-    const_for_loop<start + step, stop, step, F>(f);
-  }
+constexpr metal::enable_if_t<(start >= stop)> const_for_loop(F) {}
+
+template <int start, int stop, int step, typename F>
+constexpr metal::enable_if_t<(start < stop)> const_for_loop(F f) {
+  constexpr auto idx = Int<start>{};
+  f(idx);
+  const_for_loop<start + step, stop, step, F>(f);
 }
 
 #undef integral_const_binop
