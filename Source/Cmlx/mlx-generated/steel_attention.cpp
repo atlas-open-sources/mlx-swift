@@ -574,12 +574,13 @@ void dispatch_bool(bool v, F f) {
 }
 
 template <int start, int stop, int step, typename F>
-constexpr void const_for_loop(F f) {
-  if constexpr (start < stop) {
-    constexpr auto idx = Int<start>{};
-    f(idx);
-    const_for_loop<start + step, stop, step, F>(f);
-  }
+constexpr metal::enable_if_t<(start >= stop)> const_for_loop(F) {}
+
+template <int start, int stop, int step, typename F>
+constexpr metal::enable_if_t<(start < stop)> const_for_loop(F f) {
+  constexpr auto idx = Int<start>{};
+  f(idx);
+  const_for_loop<start + step, stop, step, F>(f);
 }
 
 #undef integral_const_binop
@@ -2012,7 +2013,7 @@ template <
 
   threadgroup_barrier(mem_flags::mem_threadgroup);
 
-  if constexpr (!q_in_registers) {
+  if (!q_in_registers) {
     if (!align_Q && int(tid.x) == (params->NQ_aligned)) {
       loader_q.load_safe(short2(BD, params->qL_rem));
     } else {
@@ -2092,7 +2093,7 @@ template <
     for (short dd = 0; dd < TDh; dd++) {
       simdgroup_barrier(mem_flags::mem_none);
 
-      if constexpr (!q_in_registers) {
+      if (!q_in_registers) {
         Qtile.template load<T, 1, 1, LDQ_tgp, 1>(
             &Qs[Qs_offset + dd * Qs_tile_stride]);
       }
@@ -2101,18 +2102,18 @@ template <
 
       simdgroup_barrier(mem_flags::mem_none);
 
-      if constexpr (!q_in_registers) {
+      if (!q_in_registers) {
         tile_matmad(Stile, Qtile, Ktile, Stile);
       } else {
         tile_matmad(Stile, Qtiles[dd], Ktile, Stile);
       }
     }
 
-    if constexpr (WN == 2) {
+    if (WN == 2) {
       constexpr int s_xchg_stride = decltype(Stile)::kElemsPerTile * 32;
       constexpr int s_xchg_size = WM * WN * s_xchg_stride;
       static_assert(
-          s_xchg_size * sizeof(AccumType) <= tgp_mem_s * sizeof(T),
+          WN != 2 || s_xchg_size * sizeof(AccumType) <= tgp_mem_s * sizeof(T),
           "The score exchange must fit in KV_smem");
 
       threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -2219,7 +2220,7 @@ template <
 
           STEEL_PRAGMA_UNROLL
           for (short jj = 0; jj < stile_t::MMAFrag_t::kElemsPerFrag; jj++) {
-            if constexpr (is_bool) {
+            if (is_bool) {
               Stile.frag_at(i, j)[jj] =
                   mfrag[jj] ? Stile.frag_at(i, j)[jj] : neg_inf;
             } else {
@@ -2289,7 +2290,7 @@ template <
       for (short id = 0; id < TVh; id++) {
         STEEL_PRAGMA_UNROLL
         for (short ik = 0; ik < TK; ik++) {
-          if constexpr (BD >= 128) {
+          if (BD >= 128) {
             simdgroup_barrier(mem_flags::mem_none);
           }
 
@@ -2299,7 +2300,7 @@ template <
           Vtile.template load<T, 1, 1, LDV_tgp, 1>(
               &Vs[Vs_offset + kk * LDV_tgp + dd]);
 
-          if constexpr (BD >= 128) {
+          if (BD >= 128) {
             simdgroup_barrier(mem_flags::mem_none);
           }
 

@@ -77,10 +77,10 @@ struct Limits<bool> {
 
 template <typename T>
 struct Limits<complex_t<T>> {
-  inline static constexpr constant complex_t<T> max = complex_t<T>(
+  static constexpr constant complex_t<T> max = complex_t<T>(
       metal::numeric_limits<T>::infinity(),
       metal::numeric_limits<T>::infinity());
-  inline static constexpr constant complex_t<T> min = complex_t<T>(
+  static constexpr constant complex_t<T> min = complex_t<T>(
       -metal::numeric_limits<T>::infinity(),
       -metal::numeric_limits<T>::infinity());
 };
