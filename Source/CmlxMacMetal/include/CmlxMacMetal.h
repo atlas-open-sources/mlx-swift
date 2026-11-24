@@ -1,0 +1,1 @@
+/* This resource target exports no C API. */

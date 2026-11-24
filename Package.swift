@@ -270,6 +270,7 @@ let noCudaCmlxExcludes = [
 
 let cmlx = Target.target(
     name: "Cmlx",
+    dependencies: [.target(name: "CmlxMacMetal", condition: .when(platforms: [.macOS]))],
     path: "Source/Cmlx",
     exclude: platformExcludes + [
         // vendor docs
@@ -378,6 +379,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-numerics", from: "1.0.0")
     ] + cudaPackageDependencies,
     targets: [
+        .target(name: "CmlxMacMetal", plugins: [.plugin(name: "BuildMacMetalLibrary")]),
+        .plugin(name: "BuildMacMetalLibrary", capability: .buildTool()),
         cmlx,
         .testTarget(
             name: "CmlxTests",

@@ -1,0 +1,1 @@
+/* Build target for the generated macOS shader resource. */
